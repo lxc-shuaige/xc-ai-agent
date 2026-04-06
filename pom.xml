@@ -90,7 +90,11 @@
             <version>9.1.0</version>
             <type>pom</type>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-mcp-client-spring-boot-starter</artifactId>
+            <version>1.0.0-M6</version>
+        </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>font-asian</artifactId>
@@ -113,6 +117,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-generator</artifactId>
+            <version>4.31.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-module-jackson</artifactId>
+            <version>4.31.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client</artifactId>
         </dependency>
     </dependencies>
 
