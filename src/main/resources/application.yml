@@ -11,7 +11,6 @@ server:
   servlet:
     context-path: /api
 
-# springdoc-openapi 配置
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

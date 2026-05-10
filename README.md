@@ -157,6 +157,70 @@ GET /api/agent/health
 - `application-local.yml` 已加入 `.gitignore`
 - `TerminalOperationTool` 仅用于开发环境，生产环境应移除
 
+## ⚡ 高并发优化
+
+### 优化总览
+
+| 优化项 | 技术方案 | 效果 |
+|--------|----------|------|
+| **虚拟线程** | Java 21 Virtual Threads | Tomcat 线程池从 200 平台线程 → 万级虚拟线程 |
+| **本地缓存** | Guava Cache | 相同问题 10 分钟内不重复调用大模型，节省 Token |
+| **令牌桶限流** | 自实现 Token Bucket | 每 IP 5 QPS，防刷防恶意 |
+| **异步接口** | CompletableFuture + 虚拟线程 | 不阻塞 Tomcat 线程，提升吞吐 |
+| **连接池调优** | Tomcat maxConnections=10000 | 支持万级并发连接 |
+
+### 1. 虚拟线程（Java 21）
+
+```java
+// TomcatConfig.java —— 用虚拟线程替换传统平台线程池
+factory.setTomcatProtocolHandlerCustomizer(protocolHandler ->
+    protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor())
+);
+```
+
+**面试话术**：AI 对话是典型的 IO 密集型场景（等待大模型 API 返回），虚拟线程在 IO 阻塞时自动让出 CPU，一个平台线程可调度成千上万个虚拟线程，相比传统线程池（200 线程），并发能力提升 50 倍以上。
+
+### 2. Guava 本地缓存
+
+```java
+// CacheConfig.java —— 缓存 AI 回复，减少重复调用
+Cache<String, String> chatCache = CacheBuilder.newBuilder()
+    .maximumSize(1000)
+    .expireAfterWrite(10, TimeUnit.MINUTES)  // 10分钟过期
+    .softValues()                              // 内存不足时 GC 回收
+    .build();
+```
+
+**面试话术**：对相同问题做 SHA-256 哈希作为缓存 Key，10 分钟内命中缓存直接返回，避免重复消耗大模型 Token。使用软引用确保缓存不会导致 OOM。
+
+### 3. 令牌桶限流
+
+```java
+// RateLimitFilter.java —— 每 IP 5 QPS
+private static final double TOKENS_PER_SECOND = 5.0;
+private static final long MAX_TOKENS = 10;  // 突发容量
+```
+
+**面试话术**：基于 ConcurrentHashMap + AtomicLong 实现无锁令牌桶，每 IP 每秒 5 个令牌，突发容量 10。超过限制返回 HTTP 429，防止恶意刷接口耗尽 AI Token。
+
+### 4. 异步接口
+
+```
+POST /api/agent/chat/async  ← 新增异步接口
+POST /api/agent/chat        ← 原有同步接口（带缓存）
+```
+
+**面试话术**：异步接口底层用 `CompletableFuture.supplyAsync()` + 虚拟线程，请求立即返回 Future，不阻塞 Tomcat 线程，适合高并发场景。
+
+### 5. 为什么不用 Redis？
+
+当前阶段使用 **Guava 本地缓存** 而非 Redis，原因：
+- 单体应用，无分布式需求
+- 本地缓存延迟 < 1μs，Redis 网络延迟 ~1ms
+- 减少了 Redis 的运维复杂度
+
+**扩展话术**：如果未来需要多实例部署，可以将 Guava Cache 替换为 Redis + Caffeine 两级缓存（L1 本地 + L2 Redis）。
+
 ## 📝 面试展示要点
 
 1. **架构设计**: Controller → Service → AI 模型，清晰的分层架构
