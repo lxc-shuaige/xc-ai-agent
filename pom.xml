@@ -8,11 +8,11 @@
         <version>3.5.12</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.example</groupId>
-    <artifactId>xc-ai-agent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>xc-ai-agent</name>
-    <description>xc-ai-agent</description>
+    <groupId>com.xc</groupId>
+    <artifactId>ai-agent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>XC AI Agent</name>
+    <description>基于 Spring AI + Spring Boot 的智能体后端服务 —— 支持多模型、RAG 知识库、MCP 协议、工具调用</description>
     <url/>
     <licenses>
         <license/>
@@ -32,19 +32,16 @@
             <name>Spring Milestones</name>
             <url>https://repo.spring.io/milestone</url>
         </repository>
-        <repository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
     </repositories>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- 参数校验 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
@@ -127,10 +124,6 @@
             <groupId>com.github.victools</groupId>
             <artifactId>jsonschema-module-jackson</artifactId>
             <version>4.31.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-mcp-client</artifactId>
         </dependency>
     </dependencies>
 
